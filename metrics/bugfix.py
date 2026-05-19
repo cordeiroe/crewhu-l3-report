@@ -1,6 +1,24 @@
+import re
 from datetime import datetime
 from typing import Optional
 from utils.date import get_week_range
+
+
+def extract_area(summary: str) -> str:
+    if not summary:
+        return "—"
+    bracket_start = summary.find("[")
+    bracket_end = summary.find("]")
+    if bracket_start != -1 and bracket_end != -1:
+        prefix = summary[bracket_start + 1:bracket_end].strip().upper()
+        if prefix == "CREWHU":
+            before_pipe = summary.split("|")[0] if "|" in summary else ""
+            subtitle = before_pipe[bracket_end + 1:].strip() if before_pipe else ""
+            return subtitle or "CREWHU"
+        return prefix or "—"
+    if "|" in summary:
+        return summary.split("|")[0].strip() or "—"
+    return "—"
 
 
 def avg_resolution_days(bugs: list) -> float:

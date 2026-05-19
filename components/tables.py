@@ -1,23 +1,8 @@
-import re
 import pandas as pd
 import streamlit as st
+from metrics.bugfix import extract_area
 
 _PRIORITY_ORDER = {"Highest": 0, "High": 1, "Medium": 2, "Low": 3, "Lowest": 4}
-def _extract_area(summary: str) -> str:
-    if not summary:
-        return "—"
-    bracket_start = summary.find("[")
-    bracket_end = summary.find("]")
-    if bracket_start != -1 and bracket_end != -1:
-        prefix = summary[bracket_start + 1:bracket_end].strip().upper()
-        if prefix == "CREWHU":
-            before_pipe = summary.split("|")[0] if "|" in summary else ""
-            subtitle = before_pipe[bracket_end + 1:].strip() if before_pipe else ""
-            return subtitle or "CREWHU"
-        return prefix or "—"
-    if "|" in summary:
-        return summary.split("|")[0].strip() or "—"
-    return "—"
 
 
 def render_ticket_table(bugs: list):
@@ -30,7 +15,7 @@ def render_ticket_table(bugs: list):
     df = df.sort_values("_priority_sort").drop(columns=["_priority_sort"])
 
     df["Key"] = df["Link"]
-    df["Area"] = df["Summary"].map(_extract_area)
+    df["Area"] = df["Summary"].map(extract_area)
     columns = [c for c in ["Key", "Priority", "Area", "Summary", "Status", "Resolved", "Created"] if c in df.columns]
     df = df[columns]
 

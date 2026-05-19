@@ -8,6 +8,7 @@ from components.auth import check_auth
 from components.chart import render_chart
 from components.tables import render_ticket_table
 from components.quarter_tab import render_quarter_tab
+from components.area_tab import render_area_tab
 from services.jira import fetch_bugs, fetch_open_bugs, fetch_bugs_opened, fetch_quarter_stats
 from metrics.bugfix import (
     avg_resolution_days, oldest_open_ticket, delivery_rate,
@@ -125,9 +126,17 @@ def main():
         "Quarter Analysis",
     ])
     with tab1:
-        render_ticket_table(last_bugs_table)
+        subtab1, subtab2 = st.tabs(["Tickets", "Area Breakdown"])
+        with subtab1:
+            render_ticket_table(last_bugs_table)
+        with subtab2:
+            render_area_tab(last_bugs, format_period(last_start, last_end))
     with tab2:
-        render_ticket_table(open_bugs_table)
+        subtab3, subtab4 = st.tabs(["Tickets", "Area Breakdown"])
+        with subtab3:
+            render_ticket_table(open_bugs_table)
+        with subtab4:
+            render_area_tab(open_bugs, "Open Today")
     with tab3:
         render_quarter_tab(quarter_data)
 
