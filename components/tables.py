@@ -1,7 +1,23 @@
+import re
 import pandas as pd
 import streamlit as st
 
 _PRIORITY_ORDER = {"Highest": 0, "High": 1, "Medium": 2, "Low": 3, "Lowest": 4}
+def _extract_area(summary: str) -> str:
+    if not summary:
+        return "—"
+    bracket_start = summary.find("[")
+    bracket_end = summary.find("]")
+    if bracket_start != -1 and bracket_end != -1:
+        prefix = summary[bracket_start + 1:bracket_end].strip().upper()
+        if prefix == "CREWHU":
+            before_pipe = summary.split("|")[0] if "|" in summary else ""
+            subtitle = before_pipe[bracket_end + 1:].strip() if before_pipe else ""
+            return subtitle or "CREWHU"
+        return prefix or "—"
+    if "|" in summary:
+        return summary.split("|")[0].strip() or "—"
+    return "—"
 
 
 def render_ticket_table(bugs: list):
@@ -14,7 +30,8 @@ def render_ticket_table(bugs: list):
     df = df.sort_values("_priority_sort").drop(columns=["_priority_sort"])
 
     df["Key"] = df["Link"]
-    columns = [c for c in ["Key", "Priority", "Summary", "Labels", "Status", "Resolved", "Created"] if c in df.columns]
+    df["Area"] = df["Summary"].map(_extract_area)
+    columns = [c for c in ["Key", "Priority", "Area", "Summary", "Status", "Resolved", "Created"] if c in df.columns]
     df = df[columns]
 
     column_config = {
@@ -27,13 +44,13 @@ def render_ticket_table(bugs: list):
             "Priority",
             help="Ticket priority as defined in Jira: Highest → High → Medium → Low → Lowest.",
         ),
+        "Area": st.column_config.TextColumn(
+            "Area",
+            help="Product area extracted from the ticket title prefix (e.g. [TRENDS], [HUB], [CREWHU]). Shows — when no prefix is present.",
+        ),
         "Summary": st.column_config.TextColumn(
             "Summary",
             help="Ticket title.",
-        ),
-        "Labels": st.column_config.TextColumn(
-            "Labels",
-            help="Jira labels or components assigned to the ticket. Useful for identifying recurring bug patterns and topic trends.",
         ),
         "Status": st.column_config.TextColumn(
             "Status",

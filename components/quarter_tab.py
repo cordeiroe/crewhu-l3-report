@@ -33,7 +33,7 @@ def render_quarter_tab(quarter_data: list):
         paper_bgcolor="rgba(0,0,0,0)",
         yaxis=dict(showgrid=True, gridcolor="rgba(0,0,0,0.05)"),
     )
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("Quarter Summary")
     summary = df.copy()
