@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from utils import get_week_range
+from utils.date import get_week_range
 
 
 def avg_resolution_days(bugs: list) -> float:

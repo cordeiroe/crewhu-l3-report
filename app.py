@@ -8,12 +8,12 @@ from components.auth import check_auth
 from components.chart import render_chart
 from components.tables import render_ticket_table
 from components.quarter_tab import render_quarter_tab
-from jira import fetch_bugs, fetch_open_bugs, fetch_bugs_opened, fetch_quarter_stats
-from metrics import (
+from services.jira import fetch_bugs, fetch_open_bugs, fetch_bugs_opened, fetch_quarter_stats
+from metrics.bugfix import (
     avg_resolution_days, oldest_open_ticket, delivery_rate,
     filter_by_created, build_history,
 )
-from utils import get_week_range, format_period, calc_change, get_quarter_ranges
+from utils.date import get_week_range, format_period, calc_change, get_quarter_ranges
 
 
 def main():
