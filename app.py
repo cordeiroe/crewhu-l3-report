@@ -9,7 +9,7 @@ from components.chart import render_chart
 from components.tables import render_ticket_table
 from components.quarter_tab import render_quarter_tab
 from components.area_tab import render_area_tab
-from services.jira import fetch_bugs, fetch_open_bugs, fetch_bugs_opened, fetch_bugs_opened_detail, fetch_quarter_stats
+from services.jira import fetch_bugs, fetch_open_bugs, fetch_bugs_opened, fetch_bugs_opened_detail, fetch_quarter_stats, fetch_quarter_bugs_detail
 from metrics.bugfix import (
     avg_resolution_days, oldest_open_ticket, delivery_rate,
     filter_by_created, build_history,
@@ -60,7 +60,11 @@ def main():
         history = build_history(fetch_bugs, fetch_bugs_opened, format_period)
         quarter_ranges = get_quarter_ranges(n=6)
         quarter_data = [
-            {"Quarter": q["label"], **fetch_quarter_stats(q["start"], q["end"])}
+            {
+                "Quarter": q["label"],
+                **fetch_quarter_stats(q["start"], q["end"]),
+                "tickets": fetch_quarter_bugs_detail(q["start"], q["end"]),
+            }
             for q in quarter_ranges
         ]
 
