@@ -9,7 +9,7 @@ from components.chart import render_chart
 from components.tables import render_ticket_table
 from components.quarter_tab import render_quarter_tab
 from components.area_tab import render_area_tab
-from services.jira import fetch_bugs, fetch_open_bugs, fetch_bugs_opened, fetch_quarter_stats
+from services.jira import fetch_bugs, fetch_open_bugs, fetch_bugs_opened, fetch_bugs_opened_detail, fetch_quarter_stats
 from metrics.bugfix import (
     avg_resolution_days, oldest_open_ticket, delivery_rate,
     filter_by_created, build_history,
@@ -55,6 +55,7 @@ def main():
         last_bugs_raw = fetch_bugs(last_start, last_end)
         open_bugs_raw = fetch_open_bugs()
         last_opened = fetch_bugs_opened(last_start, last_end)
+        last_opened_detail = fetch_bugs_opened_detail(last_start, last_end)
         prev_opened = fetch_bugs_opened(prev_start, prev_end)
         history = build_history(fetch_bugs, fetch_bugs_opened, format_period)
         quarter_ranges = get_quarter_ranges(n=6)
@@ -114,6 +115,9 @@ def main():
         "Delivery Rate", f"{rate}%",
         help=f"Percentage of known BUGFIX tickets (delivered last week + currently open) that have been resolved. Formula: {last_total} delivered ÷ ({last_total} + {open_total} open).",
     )
+
+    with st.expander(f"📂 Tickets Opened by Area — {format_period(last_start, last_end)} ({last_opened} tickets)"):
+        render_area_tab(last_opened_detail, format_period(last_start, last_end), show_details=True)
 
     st.divider()
     st.subheader("📊 Opened vs Delivered — Last 6 Weeks")

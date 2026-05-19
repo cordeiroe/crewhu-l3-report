@@ -98,6 +98,26 @@ def fetch_bugs_opened(start: date, end: date) -> int:
 
 
 @st.cache_data(ttl=3600)
+def fetch_bugs_opened_detail(start: date, end: date) -> list[dict]:
+    jql = (
+        f'project = "{PROJECT}" AND type = BUGFIX '
+        f'AND reporter IN ({_REPORTERS_JQL}) '
+        f'AND created >= "{start}" AND created <= "{end}"'
+    )
+    result = []
+    for issue in _paginate(jql, ["summary", "priority", "created"]):
+        f = issue["fields"]
+        result.append({
+            "Key": issue["key"],
+            "Link": f"{BASE_URL}/browse/{issue['key']}",
+            "Summary": f["summary"],
+            "Priority": f["priority"]["name"] if f.get("priority") else "Medium",
+            "Created": f["created"][:10] if f.get("created") else "",
+        })
+    return result
+
+
+@st.cache_data(ttl=3600)
 def fetch_quarter_stats(start: date, end: date) -> dict:
     opened = len(_paginate(
         f'project = "{PROJECT}" AND type = BUGFIX AND reporter IN ({_REPORTERS_JQL}) '

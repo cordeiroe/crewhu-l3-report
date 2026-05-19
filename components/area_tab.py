@@ -4,12 +4,12 @@ import streamlit as st
 from metrics.bugfix import extract_area
 
 
-def render_area_tab(last_bugs: list, period_label: str):
-    if not last_bugs:
+def render_area_tab(bugs: list, period_label: str, show_details: bool = False):
+    if not bugs:
         st.info("No tickets found for this period.")
         return
 
-    df = pd.DataFrame(last_bugs)
+    df = pd.DataFrame(bugs)
     df["Area"] = df["Summary"].map(extract_area)
 
     counts = (
@@ -19,8 +19,6 @@ def render_area_tab(last_bugs: list, period_label: str):
         .sort_values("Tickets", ascending=False)
     )
     counts["% of Total"] = (counts["Tickets"] / counts["Tickets"].sum() * 100).round(1)
-
-    st.subheader(f"🗂️ Tickets Delivered by Area — {period_label}")
 
     fig = px.bar(
         counts, x="Area", y="Tickets",
@@ -38,20 +36,31 @@ def render_area_tab(last_bugs: list, period_label: str):
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    st.dataframe(
-        counts,
-        width="stretch",
-        hide_index=True,
-        column_config={
-            "Area": st.column_config.TextColumn("Area"),
-            "Tickets": st.column_config.NumberColumn(
-                "Tickets",
-                help="Number of BUGFIX tickets delivered in this area last week.",
-            ),
-            "% of Total": st.column_config.NumberColumn(
-                "% of Total",
-                help="Share of total tickets delivered last week.",
-                format="%.1f%%",
-            ),
-        },
-    )
+    if show_details:
+        total = counts["Tickets"].sum()
+        for _, row in counts.iterrows():
+            area = row["Area"]
+            n = int(row["Tickets"])
+            pct = round(n / total * 100, 1) if total > 0 else 0.0
+            area_tickets = df[df["Area"] == area].to_dict("records")
+            label = f"{area} — {n} ticket{'s' if n > 1 else ''} ({pct}%)"
+            with st.expander(label, expanded=False):
+                for t in area_tickets:
+                    key = t.get("Key", "")
+                    summary = t.get("Summary", "")
+                    priority = t.get("Priority", "")
+                    st.markdown(f"- **[{key}]({t.get('Link', '#')})** `{priority}` — {summary}")
+    else:
+        st.dataframe(
+            counts,
+            width="stretch",
+            hide_index=True,
+            column_config={
+                "Area": st.column_config.TextColumn("Area"),
+                "Tickets": st.column_config.NumberColumn("Tickets"),
+                "% of Total": st.column_config.NumberColumn(
+                    "% of Total",
+                    format="%.1f%%",
+                ),
+            },
+        )
