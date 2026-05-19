@@ -29,4 +29,4 @@ def render_chart(history: list, annotation_week: Optional[str]):
         paper_bgcolor="rgba(0,0,0,0)",
         yaxis=dict(showgrid=True, gridcolor="rgba(0,0,0,0.05)"),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")

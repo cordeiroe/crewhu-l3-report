@@ -14,7 +14,7 @@ def render_ticket_table(bugs: list):
     df = df.sort_values("_priority_sort").drop(columns=["_priority_sort"])
 
     df["Key"] = df["Link"]
-    columns = [c for c in ["Key", "Priority", "Summary", "Status", "Resolved", "Created"] if c in df.columns]
+    columns = [c for c in ["Key", "Priority", "Summary", "Labels", "Status", "Resolved", "Created"] if c in df.columns]
     df = df[columns]
 
     column_config = {
@@ -31,6 +31,10 @@ def render_ticket_table(bugs: list):
             "Summary",
             help="Ticket title.",
         ),
+        "Labels": st.column_config.TextColumn(
+            "Labels",
+            help="Jira labels or components assigned to the ticket. Useful for identifying recurring bug patterns and topic trends.",
+        ),
         "Status": st.column_config.TextColumn(
             "Status",
             help="Current status of the ticket in Jira.",
@@ -45,4 +49,4 @@ def render_ticket_table(bugs: list):
         ),
     }
 
-    st.dataframe(df, use_container_width=True, hide_index=True, column_config=column_config)
+    st.dataframe(df, width="stretch", hide_index=True, column_config=column_config)

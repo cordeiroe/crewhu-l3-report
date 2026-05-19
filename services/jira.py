@@ -15,6 +15,14 @@ _SEARCH_URL = f"{BASE_URL}/rest/api/3/search/jql"
 _REPORTERS_JQL = ", ".join(REPORTERS)
 
 
+def _extract_tags(fields: dict) -> str:
+    labels = fields.get("labels") or []
+    if labels:
+        return ", ".join(labels)
+    components = [c["name"] for c in (fields.get("components") or [])]
+    return ", ".join(components) if components else "—"
+
+
 def _paginate(jql: str, fields: list[str]) -> list[dict]:
     issues, next_page_token = [], None
     while True:
@@ -50,7 +58,7 @@ def fetch_bugs(start: date, end: date) -> list[dict]:
         f'ORDER BY resolutiondate ASC'
     )
     result = []
-    for issue in _paginate(jql, ["summary", "status", "resolutiondate", "created", "priority"]):
+    for issue in _paginate(jql, ["summary", "status", "resolutiondate", "created", "priority", "labels", "components"]):
         f = issue["fields"]
         status = f["status"]["name"]
         result.append({
@@ -61,6 +69,7 @@ def fetch_bugs(start: date, end: date) -> list[dict]:
             "Status": "Done" if status == "Concluído" else status,
             "Resolved": f["resolutiondate"][:10] if f.get("resolutiondate") else "",
             "Created": f["created"][:10] if f.get("created") else "",
+            "Labels": _extract_tags(f),
         })
     return result
 
@@ -73,7 +82,7 @@ def fetch_open_bugs() -> list[dict]:
         f'ORDER BY created ASC'
     )
     result = []
-    for issue in _paginate(jql, ["summary", "status", "created", "priority"]):
+    for issue in _paginate(jql, ["summary", "status", "created", "priority", "labels", "components"]):
         f = issue["fields"]
         result.append({
             "Key": issue["key"],
@@ -82,6 +91,7 @@ def fetch_open_bugs() -> list[dict]:
             "Summary": f["summary"],
             "Status": f["status"]["name"],
             "Created": f["created"][:10] if f.get("created") else "",
+            "Labels": _extract_tags(f),
         })
     return result
 
