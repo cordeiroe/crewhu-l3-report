@@ -14,6 +14,25 @@ REPORTERS = [r.strip() for r in os.getenv("JIRA_REPORTERS", "").split(",") if r.
 _SEARCH_URL = f"{BASE_URL}/rest/api/3/search/jql"
 _REPORTERS_JQL = ", ".join(REPORTERS)
 
+_STATUS_EN = {
+    "Concluído": "Done",
+    "Em andamento": "In Progress",
+    "A fazer": "To Do",
+    "Em revisão": "In Review",
+    "Em espera": "On Hold",
+    "Aguardando": "Waiting",
+    "Aguardando cliente": "Waiting for Customer",
+    "Backlog": "Backlog",
+    "Released": "Released",
+    "Done": "Done",
+    "In Progress": "In Progress",
+    "To Do": "To Do",
+}
+
+
+def _translate_status(name: str) -> str:
+    return _STATUS_EN.get(name, name)
+
 
 
 def _paginate(jql: str, fields: list[str]) -> list[dict]:
@@ -59,7 +78,7 @@ def fetch_bugs(start: date, end: date) -> list[dict]:
             "Link": f"{BASE_URL}/browse/{issue['key']}",
             "Priority": f["priority"]["name"] if f.get("priority") else "Medium",
             "Summary": f["summary"],
-            "Status": "Done" if status == "Concluído" else status,
+            "Status": _translate_status(status),
             "Resolved": f["resolutiondate"][:10] if f.get("resolutiondate") else "",
             "Created": f["created"][:10] if f.get("created") else "",
         })
@@ -81,7 +100,7 @@ def fetch_open_bugs() -> list[dict]:
             "Link": f"{BASE_URL}/browse/{issue['key']}",
             "Priority": f["priority"]["name"] if f.get("priority") else "Medium",
             "Summary": f["summary"],
-            "Status": f["status"]["name"],
+            "Status": _translate_status(f["status"]["name"]),
             "Created": f["created"][:10] if f.get("created") else "",
         })
     return result

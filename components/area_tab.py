@@ -6,7 +6,7 @@ from metrics.bugfix import extract_area
 
 def render_area_tab(bugs: list, period_label: str, show_details: bool = False):
     if not bugs:
-        st.info("No tickets found for this period.")
+        st.info("No issues found for this period.")
         return
 
     df = pd.DataFrame(bugs)
@@ -43,7 +43,7 @@ def render_area_tab(bugs: list, period_label: str, show_details: bool = False):
             n = int(row["Tickets"])
             pct = round(n / total * 100, 1) if total > 0 else 0.0
             area_tickets = df[df["Area"] == area].to_dict("records")
-            label = f"{area} — {n} ticket{'s' if n > 1 else ''} ({pct}%)"
+            label = f"{area} — {n} issue{'s' if n > 1 else ''} ({pct}%)"
             with st.expander(label, expanded=False):
                 for t in area_tickets:
                     key = t.get("Key", "")

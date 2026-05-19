@@ -23,7 +23,7 @@ def render_chart(history: list, annotation_week: Optional[str]):
         )
     fig.update_layout(
         xaxis_title="",
-        yaxis_title="Tickets",
+        yaxis_title="Issues",
         legend_title="",
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",

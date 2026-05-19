@@ -39,7 +39,7 @@ def _render_overview(df: pd.DataFrame, current_quarter: str):
         yanchor="bottom",
     )
     fig.update_layout(
-        xaxis_title="", yaxis_title="Tickets", legend_title="",
+        xaxis_title="", yaxis_title="Issues", legend_title="",
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         yaxis=dict(showgrid=True, gridcolor="rgba(0,0,0,0.05)"),
     )
@@ -58,10 +58,10 @@ def _render_overview(df: pd.DataFrame, current_quarter: str):
         width="stretch", hide_index=True,
         column_config={
             "Quarter": st.column_config.TextColumn("Quarter", help="Calendar quarter (Q1 = Jan–Mar, Q2 = Apr–Jun, Q3 = Jul–Sep, Q4 = Oct–Dec)."),
-            "Opened": st.column_config.NumberColumn("Opened", help="Total BUGFIX tickets created during this quarter."),
-            "Opened Δ": st.column_config.TextColumn("Opened Δ", help="Change vs previous quarter. Positive = more tickets opened."),
-            "Closed": st.column_config.NumberColumn("Closed", help="Total BUGFIX tickets resolved during this quarter."),
-            "Closed Δ": st.column_config.TextColumn("Closed Δ", help="Change vs previous quarter. Positive = more tickets resolved."),
+            "Opened": st.column_config.NumberColumn("Opened", help="Total BUGFIX issues created during this quarter."),
+            "Opened Δ": st.column_config.TextColumn("Opened Δ", help="Change vs previous quarter. Positive = more issues opened."),
+            "Closed": st.column_config.NumberColumn("Closed", help="Total BUGFIX issues resolved during this quarter."),
+            "Closed Δ": st.column_config.TextColumn("Closed Δ", help="Change vs previous quarter. Positive = more issues resolved."),
             "Close Rate": st.column_config.NumberColumn("Close Rate", help="Closed ÷ Opened × 100. Above 100% means backlog shrank.", format="%.1f%%"),
         },
     )
@@ -74,7 +74,7 @@ def _render_by_area(quarter_data: list, current_quarter: str):
             rows.append({"Quarter": q["Quarter"], "Area": extract_area(ticket["Summary"])})
 
     if not rows:
-        st.info("No ticket detail available.")
+        st.info("No issue detail available.")
         return
 
     TOP_N = 8
@@ -94,7 +94,7 @@ def _render_by_area(quarter_data: list, current_quarter: str):
 
     fig = px.imshow(
         pivot,
-        labels=dict(x="Quarter", y="Area", color="Tickets"),
+        labels=dict(x="Quarter", y="Area", color="Issues"),
         color_continuous_scale="Blues",
         text_auto=True,
         aspect="auto",
@@ -102,7 +102,7 @@ def _render_by_area(quarter_data: list, current_quarter: str):
     fig.update_layout(
         xaxis_title="", yaxis_title="",
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-        coloraxis_colorbar=dict(title="Tickets"),
+        coloraxis_colorbar=dict(title="Issues"),
         xaxis=dict(side="top"),
     )
     fig.update_traces(textfont=dict(size=12))
@@ -110,8 +110,8 @@ def _render_by_area(quarter_data: list, current_quarter: str):
     other_count = len(totals) - TOP_N
     other_note = f" {other_count} less frequent area{'s' if other_count > 1 else ''} not shown." if other_count > 0 else ""
     st.caption(
-        f"Top {TOP_N} areas by total closed tickets across all quarters. "
-        f"Darker = more tickets.{other_note} ⏳ {current_quarter} is still in progress."
+        f"Top {TOP_N} areas by total closed issues across all quarters. "
+        f"Darker = more issues.{other_note} ⏳ {current_quarter} is still in progress."
     )
 
 
@@ -134,14 +134,14 @@ def _render_backlog_trend(df: pd.DataFrame, current_quarter: str):
         marker=dict(size=7),
     )
     fig.update_layout(
-        xaxis_title="", yaxis_title="Tickets", legend_title="",
+        xaxis_title="", yaxis_title="Issues", legend_title="",
         coloraxis_showscale=False,
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         yaxis=dict(showgrid=True, gridcolor="rgba(0,0,0,0.05)"),
     )
     st.plotly_chart(fig, use_container_width=True)
     st.caption(
-        "Bars = net tickets per quarter (Opened − Closed). "
+        "Bars = net issues per quarter (Opened − Closed). "
         "Red = backlog grew, blue = backlog shrank. "
         "Yellow line = cumulative backlog change since Q1 2025. "
         f"⏳ {current_quarter} is still in progress."

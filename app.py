@@ -29,17 +29,17 @@ def main():
 
     with st.sidebar:
         st.header("Filters")
-        exclude_tickets = st.checkbox("Exclude tickets?", value=False)
+        exclude_tickets = st.checkbox("Exclude issues?", value=False)
         if exclude_tickets:
             min_created = st.date_input(
                 "Created before",
                 value=date(2025, 1, 1),
-                help="Excludes tickets created before this date from metrics and tables.",
+                help="Excludes issues created before this date from metrics and tables.",
             )
             apply_filter_to_tables = st.checkbox(
-                "Also apply to ticket tables",
+                "Also apply to issue tables",
                 value=False,
-                help="When checked, the ticket lists below also exclude the filtered tickets.",
+                help="When checked, the issue lists below also exclude the filtered issues.",
             )
         else:
             min_created = None
@@ -84,43 +84,43 @@ def main():
     if min_created and exclude_tickets:
         excluded = len(last_bugs_raw) - last_total
         if excluded > 0:
-            st.info(f"**{excluded} ticket(s) excluded** from metrics — created before {min_created.strftime('%B %d, %Y')} (backlog cleanup filter active).")
+            st.info(f"**{excluded} issue(s) excluded** from metrics — created before {min_created.strftime('%B %d, %Y')} (backlog cleanup filter active).")
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric(
         "Last Week Delivered", last_total,
-        help=f"BUGFIX tickets with status Done or Released during {format_period(last_start, last_end)}.",
+        help=f"BUGFIX issues with status Done or Released during {format_period(last_start, last_end)}.",
     )
     col2.metric(
-        "Tickets Opened Last Week", last_opened,
+        "Issues Opened Last Week", last_opened,
         delta=f"{opened_change:+d} ({opened_change_pct:+.1f}%)",
-        help=f"BUGFIX tickets created during {format_period(last_start, last_end)}. Delta compares to the week before.",
+        help=f"BUGFIX issues created during {format_period(last_start, last_end)}. Delta compares to the week before.",
     )
     col3.metric(
         "Net Growth Last Week", net_growth,
         delta_color="inverse",
-        help="Tickets opened minus tickets delivered last week. Negative means the backlog shrank; positive means it grew.",
+        help="Issues opened minus issues delivered last week. Negative means the backlog shrank; positive means it grew.",
     )
     col4.metric(
-        "Open Tickets Today", open_total,
-        help=f"All BUGFIX tickets not yet Done or Released as of {date.today().strftime('%B %d, %Y')}.",
+        "Open Issues Today", open_total,
+        help=f"All BUGFIX issues not yet Done or Released as of {date.today().strftime('%B %d, %Y')}.",
     )
 
     col5, col6, col7, _ = st.columns(4)
     col5.metric(
         "Avg. Resolution Time", f"{avg_days}d",
-        help=f"Average number of days between ticket creation and resolution for bugs delivered last week ({format_period(last_start, last_end)}).",
+        help=f"Average number of days between issue creation and resolution for bugs delivered last week ({format_period(last_start, last_end)}).",
     )
     col6.metric(
-        "Oldest Open Ticket", oldest_date,
-        help=f"Creation date of the oldest open BUGFIX ticket still in the backlog ({oldest_key}). Indicates how long the most stalled issue has been waiting.",
+        "Oldest Open Issue", oldest_date,
+        help=f"Creation date of the oldest open BUGFIX issue still in the backlog ({oldest_key}). Indicates how long the most stalled issue has been waiting.",
     )
     col7.metric(
         "Delivery Rate", f"{rate}%",
-        help=f"Percentage of known BUGFIX tickets (delivered last week + currently open) that have been resolved. Formula: {last_total} delivered ÷ ({last_total} + {open_total} open).",
+        help=f"Percentage of known BUGFIX issues (delivered last week + currently open) that have been resolved. Formula: {last_total} delivered ÷ ({last_total} + {open_total} open).",
     )
 
-    with st.expander(f"📂 Tickets Opened by Area — {format_period(last_start, last_end)} ({last_opened} tickets)"):
+    with st.expander(f"📂 Issues Opened by Area — {format_period(last_start, last_end)} ({last_opened} issues)"):
         render_area_tab(last_opened_detail, format_period(last_start, last_end), show_details=True)
 
     st.divider()
@@ -129,18 +129,18 @@ def main():
 
     st.divider()
     tab1, tab2, tab3 = st.tabs([
-        f"Last Week — {format_period(last_start, last_end)} ({last_total} tickets)",
-        f"Open Today ({open_total} tickets)",
+        f"Last Week — {format_period(last_start, last_end)} ({last_total} issues)",
+        f"Open Today ({open_total} issues)",
         "Quarter Analysis",
     ])
     with tab1:
-        subtab1, subtab2 = st.tabs(["Tickets", "Area Breakdown"])
+        subtab1, subtab2 = st.tabs(["Issues", "Area Breakdown"])
         with subtab1:
             render_ticket_table(last_bugs_table)
         with subtab2:
             render_area_tab(last_bugs, format_period(last_start, last_end))
     with tab2:
-        subtab3, subtab4 = st.tabs(["Tickets", "Area Breakdown"])
+        subtab3, subtab4 = st.tabs(["Issues", "Area Breakdown"])
         with subtab3:
             render_ticket_table(open_bugs_table)
         with subtab4:
