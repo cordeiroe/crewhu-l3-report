@@ -15,11 +15,13 @@ jobs:
     steps:
       - name: Ping app
         run: |
-          code=$(curl -s -o /dev/null -w "%{http_code}" \
+          # -L follows redirects (Streamlit answers 303 before settling on 200).
+          code=$(curl -s -L -o /dev/null -w "%{http_code}" \
             "${{ secrets.APP_URL }}/?token=${{ secrets.ACCESS_TOKEN }}")
           echo "HTTP $code"
-          # 200 = awake. Warn instead of failing so a transient blip
-          # does not spam failure emails.
-          if [ "$code" != "200" ]; then
-            echo "::warning::App responded with HTTP $code"
-          fi
+          # Any 2xx/3xx means the app served the request -> still awake.
+          # Warn instead of failing so a transient blip does not spam emails.
+          case "$code" in
+            2*|3*) echo "App is awake (HTTP $code)" ;;
+            *) echo "::warning::App responded with HTTP $code" ;;
+          esac
