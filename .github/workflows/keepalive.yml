@@ -1,0 +1,25 @@
+name: Keep Streamlit Awake
+
+# Pings the public app URL on a schedule so Streamlit Community Cloud
+# never hibernates it for inactivity. Secrets keep the URL/token out of code.
+
+on:
+  schedule:
+    # Every 5 min. GitHub cron has a 5 min minimum and may be delayed under load.
+    - cron: "*/5 * * * *"
+  workflow_dispatch: # manual trigger for testing
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping app
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.APP_URL }}/?token=${{ secrets.ACCESS_TOKEN }}")
+          echo "HTTP $code"
+          # 200 = awake. Warn instead of failing so a transient blip
+          # does not spam failure emails.
+          if [ "$code" != "200" ]; then
+            echo "::warning::App responded with HTTP $code"
+          fi
