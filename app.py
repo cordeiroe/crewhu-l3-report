@@ -12,7 +12,7 @@ from components.area_tab import render_area_tab
 from services.jira import fetch_bugs, fetch_open_bugs, fetch_bugs_opened, fetch_bugs_opened_detail, fetch_quarter_stats, fetch_quarter_bugs_detail
 from metrics.bugfix import (
     avg_resolution_days, oldest_open_ticket, delivery_rate,
-    filter_by_created, build_history,
+    filter_by_created, build_history, count_depends_on_me, count_in_pipeline,
 )
 from utils.date import get_week_range, format_period, calc_change, get_quarter_ranges
 
@@ -24,6 +24,7 @@ def main():
     st.caption(f"Generated on {date.today().strftime('%B %d, %Y')} · Project: PD · Crewhu")
     st.divider()
 
+    curr_start, curr_end = get_week_range(offset_weeks=0)
     last_start, last_end = get_week_range(offset_weeks=1)
     prev_start, prev_end = get_week_range(offset_weeks=2)
 
@@ -54,6 +55,8 @@ def main():
     with st.spinner("Fetching data from Jira..."):
         last_bugs_raw = fetch_bugs(last_start, last_end)
         open_bugs_raw = fetch_open_bugs()
+        curr_opened = fetch_bugs_opened(curr_start, curr_end)
+        curr_opened_detail = fetch_bugs_opened_detail(curr_start, curr_end)
         last_opened = fetch_bugs_opened(last_start, last_end)
         last_opened_detail = fetch_bugs_opened_detail(last_start, last_end)
         prev_opened = fetch_bugs_opened(prev_start, prev_end)
@@ -80,6 +83,8 @@ def main():
     avg_days = avg_resolution_days(last_bugs)
     oldest_key, oldest_date = oldest_open_ticket(open_bugs)
     rate = delivery_rate(last_total, open_total)
+    depends_on_me = count_depends_on_me(open_bugs)
+    in_pipeline = count_in_pipeline(open_bugs)
 
     if min_created and exclude_tickets:
         excluded = len(last_bugs_raw) - last_total
@@ -119,6 +124,23 @@ def main():
         "Delivery Rate", f"{rate}%",
         help=f"Percentage of known BUGFIX issues (delivered last week + currently open) that have been resolved. Formula: {last_total} delivered ÷ ({last_total} + {open_total} open).",
     )
+
+    col8, col9, col10, _ = st.columns(4)
+    col8.metric(
+        "Issues Opened This Week", curr_opened,
+        help=f"BUGFIX issues created during the current running week ({format_period(curr_start, curr_end)}).",
+    )
+    col9.metric(
+        "Depends on Me", depends_on_me,
+        help="Open BUGFIX issues whose area is NOT Echo, Hub, Pulse or Trends — i.e. issues that fall under the L3 lead's scope (Crewhu legacy and core).",
+    )
+    col10.metric(
+        "In Delivery Pipeline", in_pipeline,
+        help="Open BUGFIX issues with status Ready for Release, Validation, Code Review or Business Review.",
+    )
+
+    with st.expander(f"📂 Issues Opened by Area — This Week · {format_period(curr_start, curr_end)} ({curr_opened} issues)"):
+        render_area_tab(curr_opened_detail, format_period(curr_start, curr_end), show_details=True)
 
     with st.expander(f"📂 Issues Opened by Area — {format_period(last_start, last_end)} ({last_opened} issues)"):
         render_area_tab(last_opened_detail, format_period(last_start, last_end), show_details=True)

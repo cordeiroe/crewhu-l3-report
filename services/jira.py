@@ -124,13 +124,14 @@ def fetch_bugs_opened_detail(start: date, end: date) -> list[dict]:
         f'AND created >= "{start}" AND created <= "{end}"'
     )
     result = []
-    for issue in _paginate(jql, ["summary", "priority", "created"]):
+    for issue in _paginate(jql, ["summary", "priority", "created", "status"]):
         f = issue["fields"]
         result.append({
             "Key": issue["key"],
             "Link": f"{BASE_URL}/browse/{issue['key']}",
             "Summary": f["summary"],
             "Priority": f["priority"]["name"] if f.get("priority") else "Medium",
+            "Status": _translate_status(f["status"]["name"]) if f.get("status") else "",
             "Created": f["created"][:10] if f.get("created") else "",
         })
     return result

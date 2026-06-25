@@ -3,6 +3,12 @@ from datetime import datetime
 from typing import Optional
 from utils.date import get_week_range
 
+# Areas the L3 lead does NOT work on — used to count tickets that depend on them.
+EXCLUDED_AREAS = {"ECHO", "HUB", "PULSE", "TRENDS"}
+
+# Statuses in the delivery pipeline (near release / under review).
+PIPELINE_STATUSES = {"ready for release", "validation", "code review", "business review"}
+
 
 def extract_area(summary: str) -> str:
     if not summary:
@@ -37,6 +43,14 @@ def oldest_open_ticket(bugs: list) -> tuple:
         return "—", "—"
     oldest = min(valid, key=lambda b: b["Created"])
     return oldest["Key"], oldest["Created"]
+
+
+def count_depends_on_me(bugs: list) -> int:
+    return sum(1 for b in bugs if extract_area(b.get("Summary", "")).upper() not in EXCLUDED_AREAS)
+
+
+def count_in_pipeline(bugs: list) -> int:
+    return sum(1 for b in bugs if b.get("Status", "").strip().lower() in PIPELINE_STATUSES)
 
 
 def delivery_rate(delivered: int, open_total: int) -> float:
